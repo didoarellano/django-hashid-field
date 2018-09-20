@@ -221,7 +221,7 @@ class HashidsTests(TestCase):
         self.assertJSONEqual(out.getvalue(), '[{"pk": "bMrZ5lYd3axGxpW72Vo0", "fields": {"name": "John Doe"}, "model": "tests.artist"}]')
         out = StringIO()
         call_command("dumpdata", "tests.Record", stdout=out)
-        self.assertJSONEqual(out.getvalue(), '[{"model": "tests.record", "pk": 1, "fields": {"name": "Test Record", "key": "82x1vxv21o", "alternate_id": null, "reference_id": "M3Ka6wW", "artist": null}}, {"model": "tests.record", "pk": 2, "fields": {"name": "Blue Album", "key": null, "alternate_id": null, "reference_id": "9wXZ03N", "artist": "bMrZ5lYd3axGxpW72Vo0"}}]')
+        self.assertJSONEqual(out.getvalue(), '[{"model": "tests.record", "pk": 1, "fields": {"name": "Test Record", "key": "82x1vxv21o", "alternate_id": null, "reference_id": "M3Ka6wW", "prefixed_id": null, "artist": null}}, {"model": "tests.record", "pk": 2, "fields": {"name": "Blue Album", "key": null, "alternate_id": null, "reference_id": "9wXZ03N", "prefixed_id": null, "artist": "bMrZ5lYd3axGxpW72Vo0"}}]')
 
     def test_loaddata(self):
         out = StringIO()
@@ -241,3 +241,14 @@ class HashidsTests(TestCase):
             self.assertTrue(Record.objects.filter(key="asdf").exists())
         with self.assertRaises(ValueError):
             self.assertTrue(Record.objects.filter(key__in=[456]).exists())
+
+    def test_prefix(self):
+        prefix = 'p_'
+        hashid = Hashid(123, prefix=prefix)
+        self.record.prefixed_id = hashid
+        self.record.save()
+        self.assertEqual(self.record.prefixed_id._prefix, prefix)
+        self.assertEqual(self.record.prefixed_id, hashid)
+
+        new_record = Record.objects.create(name='New Test Record', reference_id=43, prefixed_id=42)
+        self.assertEqual(new_record.prefixed_id.id, 42)
