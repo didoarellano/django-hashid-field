@@ -96,3 +96,12 @@ class HashidTests(TestCase):
         a = Hashid(123)
         pickled = pickle.loads(pickle.dumps(a))
         self.assertTrue(a == pickled)
+
+    def test_prefix(self):
+        prefix = 'p_'
+        a = Hashid(123, prefix=prefix)
+        b = Hashid(a.hashid, prefix=prefix)
+        self.assertTrue(a.hashid.startswith(prefix))
+        self.assertEqual(a.id, 123)
+        self.assertEqual(a.decode(a.hashid), 123)
+        self.assertEqual(a, b)

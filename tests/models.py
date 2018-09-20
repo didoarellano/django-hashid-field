@@ -16,6 +16,7 @@ class Record(models.Model):
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, null=True, blank=True, related_name="records")
     reference_id = HashidField()
     alternate_id = HashidField(salt="a different salt", null=True, blank=True)
+    prefixed_id = HashidField(prefix='p_', null=True, blank=True)
     key = HashidField(min_length=10, alphabet="abcdlmnotuvwxyz123789", null=True, blank=True)
 
     def __str__(self):

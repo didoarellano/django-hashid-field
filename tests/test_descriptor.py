@@ -77,6 +77,16 @@ class DescriptorTests(TestCase):
         for char in "ghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ":
             self.assertNotIn(char, a.hashid.hashid)
 
+    def test_prefix(self):
+        prefix = 'p_'
+        class PrefixTest(object):
+            hashid = HashidDescriptor('_hashid', prefix=prefix)
+        hashid = Hashid(123, prefix=prefix)
+        p = PrefixTest()
+        p.hashid = hashid
+        self.assertEqual(p.hashid._prefix, prefix)
+        self.assertEqual(p.hashid, hashid)
+
     def test_reset_after_invalid_set(self):
         t = TestClass()
         t.hashid = "asdf"  # First set it to something invalid, so the descriptor will just set it to this string

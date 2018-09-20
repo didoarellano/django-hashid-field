@@ -7,10 +7,11 @@ from hashids import Hashids, _is_uint
 
 @total_ordering
 class Hashid(object):
-    def __init__(self, id, salt='', min_length=0, alphabet=Hashids.ALPHABET):
+    def __init__(self, id, salt='', min_length=0, alphabet=Hashids.ALPHABET, prefix=None):
         self._salt = salt
         self._min_length = min_length
         self._alphabet = alphabet
+        self._prefix = prefix
 
         self._hashids = Hashids(salt=self._salt, min_length=self._min_length, alphabet=self._alphabet)
 
@@ -45,9 +46,14 @@ class Hashid(object):
         return self._hashids
 
     def encode(self, id):
-        return self._hashids.encode(id)
+        hashid = self._hashids.encode(id)
+        if self._prefix:
+            return '%s%s' % (self._prefix, hashid)
+        return hashid
 
     def decode(self, hashid):
+        if isinstance(hashid, six.string_types) and self._prefix and hashid.startswith(self._prefix):
+            hashid = hashid[len(self._prefix):]
         id = self._hashids.decode(hashid)
         if len(id) == 1:
             return id[0]
@@ -71,7 +77,7 @@ class Hashid(object):
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self._id == other._id and self._hashid == other._hashid
+            return self._id == other._id and self._hashid == other._hashid and self._prefix == other._prefix
         if isinstance(other, six.string_types):
             return self._hashid == other
         if isinstance(other, six.integer_types):

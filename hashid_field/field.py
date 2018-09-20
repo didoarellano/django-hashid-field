@@ -23,10 +23,11 @@ class HashidFieldMixin(object):
     passthrough_lookups = ('isnull',)
 
     def __init__(self, salt=settings.HASHID_FIELD_SALT, min_length=7, alphabet=Hashids.ALPHABET,
-                 allow_int_lookup=settings.HASHID_FIELD_ALLOW_INT_LOOKUP, *args, **kwargs):
+                 allow_int_lookup=settings.HASHID_FIELD_ALLOW_INT_LOOKUP, prefix=None, *args, **kwargs):
         self.salt = salt
         self.min_length = min_length
         self.alphabet = alphabet
+        self.prefix = prefix
         if 'allow_int' in kwargs:
             warnings.warn("The 'allow_int' parameter was renamed to 'allow_int_lookup'.", DeprecationWarning, stacklevel=2)
             allow_int_lookup = kwargs['allow_int']
@@ -38,6 +39,7 @@ class HashidFieldMixin(object):
         name, path, args, kwargs = super(HashidFieldMixin, self).deconstruct()
         kwargs['min_length'] = self.min_length
         kwargs['alphabet'] = self.alphabet
+        kwargs['prefix'] = self.prefix
         return name, path, args, kwargs
 
     def check(self, **kwargs):
@@ -71,7 +73,7 @@ class HashidFieldMixin(object):
         return []
 
     def encode_id(self, id):
-        return Hashid(id, salt=self.salt, min_length=self.min_length, alphabet=self.alphabet)
+        return Hashid(id, salt=self.salt, min_length=self.min_length, alphabet=self.alphabet, prefix=self.prefix)
 
     def from_db_value(self, value, expression, connection, context):
         if value is None:
@@ -116,7 +118,7 @@ class HashidFieldMixin(object):
     def contribute_to_class(self, cls, name, **kwargs):
         super(HashidFieldMixin, self).contribute_to_class(cls, name, **kwargs)
         # setattr(cls, "_" + self.attname, getattr(cls, self.attname))
-        setattr(cls, self.attname, HashidDescriptor(self.attname, salt=self.salt, min_length=self.min_length, alphabet=self.alphabet))
+        setattr(cls, self.attname, HashidDescriptor(self.attname, salt=self.salt, min_length=self.min_length, alphabet=self.alphabet, prefix=self.prefix))
 
 
 class HashidField(HashidFieldMixin, models.IntegerField):
